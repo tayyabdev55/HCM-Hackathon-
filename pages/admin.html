@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HCM Lite - Admin</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content">
+    <header class="topbar">
+      <div><h1>Admin dashboard</h1><p>Company overview for today.</p></div>
+      <div class="admin-profile">
+        <div class="avatar" id="avatar">HR</div>
+        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
+      </div>
+    </header>
+    <section class="stats-grid">
+      <div class="stat-card"><span>👥</span><p>Total employees</p><h2 id="totalEmployees">0</h2></div>
+      <div class="stat-card"><span>✅</span><p>Present today</p><h2 id="presentEmployees">0</h2></div>
+      <div class="stat-card"><span>🌴</span><p>On leave today</p><h2 id="onLeaveEmployees">0</h2></div>
+      <div class="stat-card"><span>⏰</span><p>Late today</p><h2 id="lateEmployees">0</h2></div>
+      <div class="stat-card"><span>📝</span><p>Pending leaves</p><h2 id="pendingLeaves">0</h2></div>
+    </section>
+    <div class="grid-2">
+      <section class="content-card"><h2>Attendance by department</h2><p>Present today compared with total staff.</p><div class="chart-box"><canvas id="deptChart"></canvas></div></section>
+      <section class="content-card"><h2>Check-in trend</h2><p>Check-ins over the last 7 days.</p><div class="chart-box"><canvas id="trendChart"></canvas></div></section>
+    </div>
+    <div class="grid-2">
+      <section class="content-card"><h2>Announcements</h2><p>Visible to every employee on their dashboard.</p>
+        <form id="noticeForm" novalidate>
+          <div class="field"><label for="noticeTitle">Title</label><input id="noticeTitle" type="text" placeholder="e.g. Office closed on Friday"></div>
+          <div class="field"><label for="noticeBody">Message</label><input id="noticeBody" type="text" placeholder="Write a short message"></div>
+          <button class="primary-btn" type="submit">Post announcement</button>
+        </form>
+        <div id="noticeList" class="notice-list"></div>
+      </section>
+    <section class="content-card"><h2>Smart helper</h2><p>Ask a question and get an answer from your real data.</p>
+      <div class="chat"><div class="chat-log" id="chatLog"></div>
+        <form class="chat-form" id="chatForm"><input id="chatInput" type="text" placeholder="Type a question..." autocomplete="off"><button class="primary-btn" type="submit">Ask</button></form></div>
+    </section>
+    </div>
+    <footer>HCM Lite © 2026</footer>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/helper.js"></script>
+  <script src="../js/announcements.js"></script>
+  <script src="../js/admin.js"></script>
+</body>
+</html>

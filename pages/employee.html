@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HCM Lite - Employee</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content">
+    <header class="topbar">
+      <div><h1>My dashboard</h1><p>Check in, track your month and read announcements.</p></div>
+      <div class="admin-profile">
+        <div class="avatar" id="avatar">HR</div>
+        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
+      </div>
+    </header>
+    <section class="stats-grid">
+      <div class="stat-card"><span>📅</span><p>Today</p><h2 class="sm" id="todayStatus">-</h2></div>
+      <div class="stat-card"><span>🕘</span><p>Checked in at</p><h2 id="inTime">--:--</h2></div>
+      <div class="stat-card"><span>⏱️</span><p>Hours today</p><h2 id="hoursToday">0</h2></div>
+      <div class="stat-card"><span>🌴</span><p>Leave days left</p><h2 id="balance">0</h2></div>
+    </section>
+    <section class="content-card"><h2>Attendance</h2><p>One check-in per day. Check out when you finish.</p>
+      <div class="toolbar"><button class="primary-btn" id="checkInBtn" type="button">Check in</button><button class="primary-btn btn-alt" id="checkOutBtn" type="button">Check out</button></div>
+      <div class="chips"><span class="chip">This month</span><span class="chip">On time <b id="m-present">0</b></span><span class="chip">Late <b id="m-late">0</b></span><span class="chip">Half day <b id="m-half">0</b></span><span class="chip">Absent <b id="m-absent">0</b></span></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Hours</th><th>Status</th></tr></thead><tbody id="attBody"></tbody></table></div>
+    </section>
+    <div class="grid-2">
+      <section class="content-card"><h2>Announcements</h2><p>News from your Admin.</p><div id="noticeList" class="notice-list"></div></section>
+    <section class="content-card"><h2>Smart helper</h2><p>Ask a question and get an answer from your real data.</p>
+      <div class="chat"><div class="chat-log" id="chatLog"></div>
+        <form class="chat-form" id="chatForm"><input id="chatInput" type="text" placeholder="Type a question..." autocomplete="off"><button class="primary-btn" type="submit">Ask</button></form></div>
+    </section>
+    </div>
+    <footer>HCM Lite © 2026</footer>
+  </main>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/helper.js"></script>
+  <script src="../js/announcements.js"></script>
+  <script src="../js/attendance.js"></script>
+</body>
+</html>

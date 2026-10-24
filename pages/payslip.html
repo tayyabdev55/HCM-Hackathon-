@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HCM Lite - Payslip</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content">
+    <header class="topbar">
+      <div><h1>Payslip</h1><p>Monthly salary slip. Print it or save as PDF.</p></div>
+      <div class="admin-profile">
+        <div class="avatar" id="avatar">HR</div>
+        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
+      </div>
+    </header>
+    <section class="content-card"><div class="toolbar no-print">
+        <div id="employeeWrap"><select id="slipEmployee"></select></div><input id="slipMonth" type="month">
+        <button class="primary-btn" id="printBtn" type="button">Print / Save as PDF</button></div>
+      <div class="slip" id="slip"></div>
+    </section>
+    <footer>HCM Lite © 2026</footer>
+  </main>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/payslip.js"></script>
+</body>
+</html>

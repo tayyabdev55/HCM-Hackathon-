@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HCM Lite - Attendance</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content">
+    <header class="topbar">
+      <div><h1>Attendance</h1><p>Who is present, late, on leave or absent on a day.</p></div>
+      <div class="admin-profile">
+        <div class="avatar" id="avatar">HR</div>
+        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
+      </div>
+    </header>
+    <section class="stats-grid">
+      <div class="stat-card"><span>✅</span><p>Present</p><h2 id="c-present">0</h2></div>
+      <div class="stat-card"><span>⏰</span><p>Late</p><h2 id="c-late">0</h2></div>
+      <div class="stat-card"><span>🌗</span><p>Half day</p><h2 id="c-half">0</h2></div>
+      <div class="stat-card"><span>🌴</span><p>On leave</p><h2 id="c-leave">0</h2></div>
+      <div class="stat-card"><span>🚫</span><p>Absent</p><h2 id="c-absent">0</h2></div>
+    </section>
+    <section class="content-card"><h2>Daily records</h2><p>Employees with no record on a working day are marked absent.</p>
+      <div class="toolbar"><input id="dayPicker" type="date"><input id="searchInput" type="search" placeholder="Search employee"><button class="primary-btn btn-alt" id="exportBtn" type="button">Export CSV</button></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Employee</th><th>Department</th><th>In</th><th>Out</th><th>Hours</th><th>Status</th></tr></thead><tbody id="recBody"></tbody></table></div>
+    </section>
+    <footer>HCM Lite © 2026</footer>
+  </main>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/records.js"></script>
+</body>
+</html>

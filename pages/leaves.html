@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HCM Lite - Leave requests</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content">
+    <header class="topbar">
+      <div><h1>Leave requests</h1><p>Approve or reject with a comment.</p></div>
+      <div class="admin-profile">
+        <div class="avatar" id="avatar">HR</div>
+        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
+      </div>
+    </header>
+    <section class="content-card" id="leaveTable"><h2>All requests</h2><p>Pending requests are shown first. Approving updates the employee's balance.</p>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead><tbody id="leaveBody"></tbody></table></div>
+    </section>
+    <footer>HCM Lite © 2026</footer>
+  </main>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/leave.js"></script>
+</body>
+</html>

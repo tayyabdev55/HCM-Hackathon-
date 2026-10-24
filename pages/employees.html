@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HCM Lite - Employees</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main-content">
+    <header class="topbar">
+      <div><h1>Employees</h1><p>Add employees, which also creates their login.</p></div>
+      <div class="admin-profile">
+        <div class="avatar" id="avatar">HR</div>
+        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
+      </div>
+    </header>
+    <section class="content-card"><h2>Add new employee</h2><p>The email and password below become the employee's login.</p>
+      <form id="addEmployeeForm" class="form-grid" novalidate>
+        <div class="field"><label for="empName">Full name</label><input id="empName" type="text" placeholder="Full name"></div>
+        <div class="field"><label for="empEmail">Email</label><input id="empEmail" type="email" placeholder="name@company.com"></div>
+        <div class="field"><label for="empPassword">Temporary password</label><input id="empPassword" type="password" placeholder="Minimum 6 characters"></div>
+        <div class="field"><label for="empDepartment">Department</label><input id="empDepartment" type="text" placeholder="e.g. IT"></div>
+        <div class="field"><label for="empSalary">Monthly salary (Rs)</label><input id="empSalary" type="number" min="1" placeholder="e.g. 60000"></div>
+        <div class="field full"><button class="primary-btn" type="submit">Create employee</button><p id="formMessage" role="status"></p></div>
+      </form>
+    </section>
+    <section class="content-card"><h2>All employees</h2><p>Total employees: <strong id="employeeCount">0</strong></p>
+      <div class="toolbar"><input id="searchInput" type="search" placeholder="Search by name or email"><select id="deptFilter"></select></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Salary</th><th>Actions</th></tr></thead><tbody id="employeeBody"></tbody></table></div>
+    </section>
+    <footer>HCM Lite © 2026</footer>
+  </main>
+  <script src="../js/storage.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/employees.js"></script>
+</body>
+</html>
