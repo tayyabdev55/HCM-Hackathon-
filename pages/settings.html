@@ -1,41 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HCM Lite - Settings</title>
-  <link rel="stylesheet" href="../css/dashboard.css">
-</head>
-<body>
-  <aside class="sidebar" id="sidebar"></aside>
-  <main class="main-content">
-    <header class="topbar">
-      <div><h1>Company settings</h1><p>These rules decide late, half day, leave and payslips.</p></div>
-      <div class="admin-profile">
-        <div class="avatar" id="avatar">HR</div>
-        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
-      </div>
-    </header>
-    <section class="content-card"><h2>Rules</h2><p>Change anytime. New rules apply from now on.</p>
-      <form id="settingsForm" class="form-grid" novalidate>
-        <div class="field full"><label for="setName">Company name</label><input id="setName" type="text"></div>
-        <div class="field"><label for="setStart">Office start time</label><input id="setStart" type="time"></div>
-        <div class="field"><label for="setGrace">Grace minutes</label><input id="setGrace" type="number" min="0"></div>
-        <div class="field"><label for="setQuota">Yearly leave quota (days)</label><input id="setQuota" type="number" min="1"></div>
-        <div class="field full"><label>Working days</label>
-          <div class="days" id="wdBox">
-            <label><input type="checkbox" class="wd" value="1"> Mon</label><label><input type="checkbox" class="wd" value="2"> Tue</label>
-            <label><input type="checkbox" class="wd" value="3"> Wed</label><label><input type="checkbox" class="wd" value="4"> Thu</label>
-            <label><input type="checkbox" class="wd" value="5"> Fri</label><label><input type="checkbox" class="wd" value="6"> Sat</label>
-            <label><input type="checkbox" class="wd" value="0"> Sun</label>
-          </div></div>
-        <div class="field full"><button class="primary-btn" type="submit">Save settings</button><p id="settingsMessage" role="status"></p></div>
-      </form>
-    </section>
-    <footer>HCM Lite © 2026</footer>
-  </main>
-  <script src="../js/storage.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/settings.js"></script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Settings · HCM Lite</title><link rel="stylesheet" href="../css/style.css"></head><body><div id="app"></div><script src="../js/storage.js"></script><script src="../js/auth.js"></script><script>
+const admin=HCM.guard('admin');if(admin){HCM.wireTheme();const c=HCM.company(),nav=[['admin.html','Dashboard'],['employees.html','Employees'],['attendance.html','Attendance'],['leaves.html','Leave requests'],['settings.html','Settings'],['payslip.html','Payslips']];document.querySelector('#app').innerHTML=`<div class="app-layout"><aside class="sidebar"><div class="brand-mark">HCM<span>+</span></div><nav class="nav-links">${nav.map(n=>`<a class="${n[0]==='settings.html'?'active':''}" href="${n[0]}">${n[1]}</a>`).join('')}</nav><div class="sidebar-bottom"><div class="user-chip"><strong>${HCM.esc(admin.name)}</strong><span class="muted">Administrator</span></div><button class="btn secondary" data-theme-toggle>☼ Toggle theme</button><button class="btn secondary" id="logout">↗ Sign out</button></div></aside><header class="mobile-top"><span class="brand-mark">HCM<span>+</span></span><nav class="nav-links">${nav.map(n=>`<a href="${n[0]}">${n[1]}</a>`).join('')}</nav></header><main class="main-area"><header class="page-header"><div><p class="eyebrow">WORKSPACE CONFIGURATION</p><h2>Company settings</h2><p>These rules are used for attendance, leave, and payslip calculations.</p></div></header><section class="panel" style="max-width:760px"><form id="settingsForm" class="form-grid" novalidate><label class="field wide">Company name<input name="name" value="${HCM.esc(c.name||'')}" required></label><label class="field">Office start time<input name="startTime" type="time" value="${HCM.esc(c.startTime||'09:00')}" required></label><label class="field">Grace minutes<input name="graceMinutes" type="number" min="0" max="240" value="${Number(c.graceMinutes??15)}" required></label><label class="field">Yearly leave quota (working days)<input name="leaveQuota" type="number" min="0" max="365" value="${Number(c.leaveQuota??20)}" required></label><div class="field"><span>Working days</span><div class="actions" style="padding-top:7px">${[['1','Mon'],['2','Tue'],['3','Wed'],['4','Thu'],['5','Fri'],['6','Sat'],['0','Sun']].map(([v,l])=>`<label style="display:flex;gap:5px;align-items:center"><input type="checkbox" name="workingDays" value="${v}" ${(c.workingDays||[1,2,3,4,5]).includes(Number(v))?'checked':''}>${l}</label>`).join('')}</div></div><p class="form-error wide" id="error"></p><div class="wide"><button class="btn primary" type="submit">Save company rules</button> <span id="saved" class="muted"></span></div></form></section><section class="panel" style="max-width:760px;margin-top:16px"><h3>Local data recovery</h3><p class="muted">All records live in this browser’s localStorage. Export important records before clearing browser data.</p><button class="btn danger" id="reset">Clear all HCM Lite data</button></section></main></div>`;
+document.querySelector('#settingsForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.currentTarget),name=String(f.get('name')||'').trim(),startTime=f.get('startTime'),grace=Number(f.get('graceMinutes')),quota=Number(f.get('leaveQuota')),working=[...f.getAll('workingDays')].map(Number);const err=document.querySelector('#error');err.textContent='';if(!name||!startTime||!Number.isInteger(grace)||grace<0||grace>240||!Number.isFinite(quota)||quota<0||quota>365||!working.length){err.textContent='Check required fields, ranges, and select at least one working day.';return;}HCM.set('hcm_company',{...HCM.company(),name,startTime,graceMinutes:grace,leaveQuota:quota,workingDays:working});document.querySelector('#saved').textContent='Saved successfully.';};document.querySelector('#reset').onclick=()=>{if(confirm('Permanently clear all HCM Lite local data and return to first-run setup?')){HCM.clearAppData();location.href='../index.html';}};document.querySelector('#logout').onclick=HCM.logout;}
+</script></body></html>

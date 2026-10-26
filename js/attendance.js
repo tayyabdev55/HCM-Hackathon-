@@ -1,67 +1,32 @@
-// Employee: dashboard (check in / out) and the "My attendance" page
-const me = requireRole("employee");
-if (me) {
-  const company = getCompany(), $ = id => document.getElementById(id);
-
-  function renderRows(days, limit) {
-    const mine = getAtt().filter(a => a.userId === me.id);
-    let rows = days.map(d => ({ d, rec: mine.find(a => a.date === d), status: statusOn(me.id, d) })).filter(r => r.rec || r.status !== "off");
-    if (limit) rows = rows.slice(0, limit);
-    $("attBody").innerHTML = rows.length ? rows.map(r =>
-      "<tr><td>" + r.d + "</td><td>" + (r.rec ? r.rec.in : "-") + "</td><td>" + (r.rec && r.rec.out ? r.rec.out : "-") + "</td><td>" +
-      (r.rec && r.rec.hours ? r.rec.hours.toFixed(1) : "-") + "</td><td>" + badge(r.status) + "</td></tr>").join("")
-      : "<tr><td colspan=\"5\">No records yet.</td></tr>";
+/* Attendance calculations and CSV export. */
+(function (global) {
+  'use strict'; const H = global.HCM;
+  function getTodayRecord(employeeId, date=H.today()) { return H.attendance().find(a => a.employeeId === employeeId && a.date === date) || null; }
+  function checkIn(employeeId, now=new Date()) {
+    const date = H.today(), records = H.attendance();
+    if (records.some(a => a.employeeId === employeeId && a.date === date)) throw new Error('You already checked in today.');
+    const company = H.company(), time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const [sh,sm] = String(company.startTime || '09:00').split(':').map(Number), deadline = sh*60+sm+Number(company.graceMinutes||0), current = now.getHours()*60+now.getMinutes();
+    const status = current > deadline ? 'Late' : 'Present';
+    const record = { id:H.id(), employeeId, date, checkIn:time, checkOut:'', hours:0, status };
+    records.push(record); H.saveAttendance(records); return record;
   }
-
-  function fillSummary(ym, prefix) {
-    const s = monthSummary(me.id, ym);
-    ["present", "late", "half", "absent", "leave"].forEach(k => { if ($(prefix + k)) $(prefix + k).textContent = s[k]; });
+  function checkOut(employeeId, now=new Date()) {
+    const date=H.today(), records=H.attendance(), i=records.findIndex(a=>a.employeeId===employeeId && a.date===date);
+    if (i<0) throw new Error('Check in first before checking out.');
+    if (records[i].checkOut) throw new Error('You have already checked out today.');
+    const out=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const hours=H.hoursBetween(records[i].checkIn,out);
+    records[i].checkOut=out; records[i].hours=Number(hours.toFixed(2));
+    if (hours < 5) records[i].status='Half Day';
+    H.saveAttendance(records); return records[i];
   }
-
-  function renderDashboard() {
-    const rec = getAtt().find(a => a.userId === me.id && a.date === today());
-    $("todayStatus").textContent = rec ? rec.status : "Not checked in";
-    $("inTime").textContent = rec ? rec.in : "--:--";
-    $("hoursToday").textContent = rec && rec.hours ? rec.hours.toFixed(1) : "0";
-    $("balance").textContent = leaveBalance(me.id);
-    $("checkInBtn").disabled = !!rec;
-    $("checkOutBtn").disabled = !rec || !!rec.out;
-    fillSummary(monthKey(), "m-");
-    renderRows(monthDays(monthKey()).filter(d => d <= today()).reverse(), 7);
+  function effectiveStatus(record) { return record.status || 'Present'; }
+  function employeeRecords(id) { return H.attendance().filter(a=>a.employeeId===id).sort((a,b)=>b.date.localeCompare(a.date)); }
+  function exportCSV(records, filename='attendance.csv') {
+    const rows=[['Date','Employee','Department','Check In','Check Out','Hours','Status'],...records.map(a=>{const u=H.users().find(x=>x.id===a.employeeId)||{};return [a.date,u.name||'Deleted employee',u.department||'',a.checkIn||'',a.checkOut||'',a.hours||0,a.status||''];})];
+    const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})), a=document.createElement('a'); a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
   }
-
-  function renderMonth() {
-    const ym = $("monthPicker").value || monthKey();
-    fillSummary(ym, "s-");
-    renderRows(monthDays(ym).filter(d => d <= today()).reverse());
-  }
-
-  if ($("checkInBtn")) {
-    $("checkInBtn").addEventListener("click", () => {
-      const time = nowTime(), all = getAtt();
-      if (all.some(a => a.userId === me.id && a.date === today())) return; // one check-in per day
-      const late = mins(time) > mins(company.start) + company.grace;
-      all.push({ userId: me.id, date: today(), in: time, out: "", hours: 0, status: late ? "late" : "present" });
-      save(KEYS.att, all);
-      renderDashboard();
-    });
-    $("checkOutBtn").addEventListener("click", () => {
-      const all = getAtt(), rec = all.find(a => a.userId === me.id && a.date === today());
-      if (!rec || rec.out) return; // check-out only after check-in
-      rec.out = nowTime();
-      rec.hours = (mins(rec.out) - mins(rec.in)) / 60;
-      if (rec.hours < 5) rec.status = "half";
-      save(KEYS.att, all);
-      renderDashboard();
-    });
-    initAnnouncements(false);
-    initChat(employeeAnswer(me));
-    renderDashboard();
-  }
-
-  if ($("monthPicker")) {
-    $("monthPicker").value = monthKey();
-    $("monthPicker").addEventListener("change", renderMonth);
-    renderMonth();
-  }
-}
+  global.HCMAttendance={getTodayRecord,checkIn,checkOut,effectiveStatus,employeeRecords,exportCSV};
+})(window);

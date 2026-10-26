@@ -1,36 +1,84 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HCM Lite - Attendance</title>
-  <link rel="stylesheet" href="../css/dashboard.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Attendance · HCM Lite</title><link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
-  <aside class="sidebar" id="sidebar"></aside>
-  <main class="main-content">
-    <header class="topbar">
-      <div><h1>Attendance</h1><p>Who is present, late, on leave or absent on a day.</p></div>
-      <div class="admin-profile">
-        <div class="avatar" id="avatar">HR</div>
-        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
-      </div>
-    </header>
-    <section class="stats-grid">
-      <div class="stat-card"><span>✅</span><p>Present</p><h2 id="c-present">0</h2></div>
-      <div class="stat-card"><span>⏰</span><p>Late</p><h2 id="c-late">0</h2></div>
-      <div class="stat-card"><span>🌗</span><p>Half day</p><h2 id="c-half">0</h2></div>
-      <div class="stat-card"><span>🌴</span><p>On leave</p><h2 id="c-leave">0</h2></div>
-      <div class="stat-card"><span>🚫</span><p>Absent</p><h2 id="c-absent">0</h2></div>
-    </section>
-    <section class="content-card"><h2>Daily records</h2><p>Employees with no record on a working day are marked absent.</p>
-      <div class="toolbar"><input id="dayPicker" type="date"><input id="searchInput" type="search" placeholder="Search employee"><button class="primary-btn btn-alt" id="exportBtn" type="button">Export CSV</button></div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Employee</th><th>Department</th><th>In</th><th>Out</th><th>Hours</th><th>Status</th></tr></thead><tbody id="recBody"></tbody></table></div>
-    </section>
-    <footer>HCM Lite © 2026</footer>
-  </main>
-  <script src="../js/storage.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/records.js"></script>
-</body>
-</html>
+<body><div id="app"></div>
+<script src="../js/storage.js"></script><script src="../js/auth.js"></script><script src="../js/attendance.js"></script><script src="../js/leave.js"></script><script>
+const user=HCM.guard(null);
+if(user){
+  HCM.wireTheme();
+  const admin=user.role==='admin';
+  const nav=admin?[['admin.html','Dashboard'],['employees.html','Employees'],['attendance.html','Attendance'],['leaves.html','Leave requests'],['settings.html','Settings'],['payslip.html','Payslips']]:[['employee.html','My dashboard'],['attendance.html','Attendance'],['payslip.html','My payslip']];
+  document.querySelector('#app').innerHTML=`<div class="app-layout">
+  <aside class="sidebar"><div class="brand-mark">HCM<span>+</span></div><nav class="nav-links">${nav.map(n=>`<a class="${n[0]==='attendance.html'?'active':''}" href="${n[0]}">${n[1]}</a>`).join('')}</nav>
+  <div class="sidebar-bottom"><div class="user-chip"><strong>${HCM.esc(user.name)}</strong><span class="muted">${admin?'Administrator':HCM.esc(user.department||'Employee')}</span></div><button class="btn secondary" data-theme-toggle>☼ Toggle theme</button><button class="btn secondary" id="logout">↗ Sign out</button></div></aside>
+  <header class="mobile-top"><span class="brand-mark">HCM<span>+</span></span><nav class="nav-links">${nav.map(n=>`<a href="${n[0]}">${n[1]}</a>`).join('')}</nav></header>
+  <main class="main-area">
+    <header class="page-header"><div><p class="eyebrow">TIME & PAYROLL</p><h2>${admin?'Attendance overview':'My attendance'}</h2><p>${admin?'Review company check-ins and export records.':'Check in and out here. Your salary estimate updates automatically from saved attendance.'}</p></div>
+    <div class="header-actions">${admin?'<button class="btn secondary" id="exportCsv">Export CSV</button>':'<button class="btn secondary" id="goPayslip">Open monthly payslip</button>'}</div></header>
+    ${admin?`
+    <div class="grid stats-grid">
+      <article class="panel stat"><div class="stat-label">Employees</div><div class="stat-value" id="employeeCount">0</div></article>
+      <article class="panel stat"><div class="stat-label">Checked in today</div><div class="stat-value" id="checkedCount">0</div></article>
+      <article class="panel stat"><div class="stat-label">Late today</div><div class="stat-value" id="lateCount">0</div></article>
+      <article class="panel stat"><div class="stat-label">Half days this month</div><div class="stat-value" id="halfCount">0</div></article>
+    </div>
+    <section class="panel"><div class="panel-head"><div><h3>Attendance records</h3><p>Filter by date, employee, or status.</p></div></div>
+      <div class="toolbar"><input type="date" id="dateFilter" aria-label="Filter date"><input id="search" placeholder="Search employee…" aria-label="Search employee"><select id="statusFilter"><option value="">All statuses</option><option>Present</option><option>Late</option><option>Half Day</option></select></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Employee</th><th>Department</th><th>Check in</th><th>Check out</th><th>Hours</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table></div>
+    </section>`:`
+    <div class="grid stats-grid">
+      <article class="panel stat"><div class="stat-label">Today’s status</div><div class="stat-value" id="todayStatus">—</div><div class="stat-note" id="todayTimes">No attendance yet</div></article>
+      <article class="panel stat"><div class="stat-label">Hours this month</div><div class="stat-value" id="monthHours">0</div><div class="stat-note">Recorded after check-out</div></article>
+      <article class="panel stat"><div class="stat-label">Estimated net salary</div><div class="stat-value" id="netSalary">—</div><div class="stat-note">Updates when attendance is saved</div></article>
+      <article class="panel stat"><div class="stat-label">Estimated deduction</div><div class="stat-value" id="deduction">—</div><div class="stat-note">Absent + half-day rule</div></article>
+    </div>
+    <div class="grid two-col">
+      <section class="panel"><div class="panel-head"><div><h3>Clock in / clock out</h3><p>Late status follows company start time and grace minutes.</p></div></div>
+        <div class="notice" id="attendanceNotice">Check in when you arrive.</div>
+        <div class="actions" style="margin-top:16px"><button class="btn primary" id="checkIn">Check in</button><button class="btn secondary" id="checkOut">Check out</button></div>
+        <p class="form-error" id="attError" style="margin-top:10px"></p>
+        <div class="notice" style="margin-top:18px"><strong>Salary formula</strong><br>Daily rate = monthly salary ÷ working days in the selected month.<br>Deduction = daily rate × (absent days + 0.5 × half days).<br>Net estimate = monthly salary − deduction.</div>
+      </section>
+      <section class="panel"><div class="panel-head"><div><h3>Monthly attendance</h3><p>Your saved records for the selected month.</p></div><label class="field">Month<input id="month" type="month" value="${HCM.today().slice(0,7)}"></label></div>
+        <div class="table-wrap"><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Hours</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table></div>
+      </section>
+    </div>`}
+  </main></div>`;
+  const money=n=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+  if(admin){
+    function renderAdmin(){
+      const all=HCM.users().filter(u=>u.role==='employee'),records=HCM.attendance(),today=HCM.today(),date=document.querySelector('#dateFilter').value,q=document.querySelector('#search').value.toLowerCase(),status=document.querySelector('#statusFilter').value;
+      document.querySelector('#employeeCount').textContent=all.length;
+      document.querySelector('#checkedCount').textContent=records.filter(a=>a.date===today).length;
+      document.querySelector('#lateCount').textContent=records.filter(a=>a.date===today&&a.status==='Late').length;
+      document.querySelector('#halfCount').textContent=records.filter(a=>a.date.startsWith(today.slice(0,7))&&a.status==='Half Day').length;
+      const filtered=records.filter(a=>{const u=all.find(x=>x.id===a.employeeId)||{};return(!date||a.date===date)&&(!q||String(u.name||'').toLowerCase().includes(q)||String(u.email||'').toLowerCase().includes(q))&&(!status||a.status===status);}).sort((a,b)=>b.date.localeCompare(a.date));
+      document.querySelector('#rows').innerHTML=filtered.length?filtered.map(a=>{const u=all.find(x=>x.id===a.employeeId)||{};return `<tr><td>${HCM.fmtDate(a.date)}</td><td>${HCM.esc(u.name||'Deleted employee')}</td><td>${HCM.esc(u.department||'—')}</td><td>${a.checkIn||'—'}</td><td>${a.checkOut||'—'}</td><td>${Number(a.hours||0).toFixed(2)}</td><td><span class="badge ${HCM.statusClass(a.status)}">${HCM.esc(a.status)}</span></td></tr>`}).join(''):'<tr><td colspan="7" class="empty">No matching attendance records.</td></tr>';
+    }
+    ['dateFilter','search','statusFilter'].forEach(id=>document.getElementById(id).addEventListener(id==='search'?'input':'change',renderAdmin));
+    document.querySelector('#exportCsv').onclick=()=>HCMAttendance.exportCSV(HCM.attendance(),`attendance-${HCM.today()}.csv`);
+    renderAdmin();
+  } else {
+    const monthInput=document.querySelector('#month');
+    function renderEmployee(){
+      const today=HCM.today(),a=HCMAttendance.getTodayRecord(user.id),all=HCMAttendance.employeeRecords(user.id),month=monthInput.value||today.slice(0,7),[year,mo]=month.split('-').map(Number),company=HCM.company(),working=HCM.monthWorkingDays(year,mo,company.workingDays),records=all.filter(r=>r.date.startsWith(month));
+      document.querySelector('#todayStatus').textContent=a?a.status:'Not checked in';
+      document.querySelector('#todayTimes').textContent=a?`In ${a.checkIn||'—'} · Out ${a.checkOut||'not yet'}`:'No attendance record today';
+      document.querySelector('#attendanceNotice').textContent=a?`Today: ${a.status}. Check-in ${a.checkIn}; check-out ${a.checkOut||'not yet recorded'}.`:`Office start ${company.startTime||'09:00'} + ${Number(company.graceMinutes||0)} grace minute(s). Check in once per day.`;
+      document.querySelector('#checkIn').disabled=!!a;document.querySelector('#checkOut').disabled=!a||!!a.checkOut;
+      document.querySelector('#monthHours').textContent=records.reduce((s,r)=>s+Number(r.hours||0),0).toFixed(1);
+      const absent=Math.max(0,working-new Set(records.filter(r=>{const d=new Date(r.date+'T12:00:00');return (company.workingDays||[1,2,3,4,5]).includes(d.getDay());}).map(r=>r.date)).size);
+      const half=records.filter(r=>r.status==='Half Day').length,dayRate=working?Number(user.salary||0)/working:0,deduct=dayRate*(absent+.5*half),net=Number(user.salary||0)-deduct;
+      document.querySelector('#netSalary').textContent=money(net);document.querySelector('#deduction').textContent=money(deduct);
+      document.querySelector('#rows').innerHTML=records.length?records.map(r=>`<tr><td>${HCM.fmtDate(r.date)}</td><td>${r.checkIn||'—'}</td><td>${r.checkOut||'—'}</td><td>${Number(r.hours||0).toFixed(2)}</td><td><span class="badge ${HCM.statusClass(r.status)}">${HCM.esc(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No attendance records for this month.</td></tr>';
+    }
+    document.querySelector('#checkIn').onclick=()=>{try{HCMAttendance.checkIn(user.id);document.querySelector('#attError').textContent='';renderEmployee();}catch(e){document.querySelector('#attError').textContent=e.message;}};
+    document.querySelector('#checkOut').onclick=()=>{try{HCMAttendance.checkOut(user.id);document.querySelector('#attError').textContent='';renderEmployee();}catch(e){document.querySelector('#attError').textContent=e.message;}};
+    monthInput.onchange=renderEmployee;document.querySelector('#goPayslip').onclick=()=>location.href='payslip.html';renderEmployee();
+  }
+  document.querySelector('#logout').onclick=HCM.logout;
+}
+</script></body></html>

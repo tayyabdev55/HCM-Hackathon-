@@ -1,85 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HCM Lite - Login</title>
-  <link rel="stylesheet" href="css/login.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HCM Lite · Sign in</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="login-page">
-  <div class="login-card">
-    <h1>HCM Lite</h1>
-    <p id="subtitle">Human Capital Management System</p>
-
-    <!-- First run: create company + admin -->
-    <form id="setupForm" hidden novalidate>
-      <label for="companyName">Company name</label>
-    <input type="text" id="companyName" placeholder="e.g. Saylani Tech">
-      <label for="adminName">Your name</label>
-      <input type="text" id="adminName" placeholder="Admin full name">
-      <label for="adminEmail">Admin email</label>
-      <input type="email" id="adminEmail" placeholder="admin@company.com">
-      <label for="adminPassword">Password</label>
-      <input type="password" id="adminPassword" placeholder="Minimum 6 characters">
-      <label for="startTime">Office start time</label>
-      <input type="time" id="startTime" value="09:00">
-      <label for="graceMinutes">Grace minutes</label>
-      <input type="number" id="graceMinutes" min="0" value="15">
-      <label for="leaveQuota">Yearly leave quota (days)</label>
-      <input type="number" id="leaveQuota" min="1" value="20">
-      <button type="submit">Create company</button>
-    </form>
-
-    <form id="loginForm" hidden novalidate>
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Enter email" autocomplete="username">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Enter password" autocomplete="current-password">
-      <button type="submit">Login</button>
-    </form>
-  </div>
-
-  <script src="js/storage.js"></script>
-  <script src="js/auth.js"></script>
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-brand glass">
+      <div class="brand-mark">HCM<span>+</span></div>
+      <p class="eyebrow">HUMAN CAPITAL MANAGEMENT</p>
+      <h1>People first.<br><span>Work smarter.</span></h1>
+      <p class="muted">A lightweight HR workspace for attendance, leave, and payroll.</p>
+      <div class="auth-points"><span>✓ Attendance</span><span>✓ Leave management</span><span>✓ Monthly payslips</span></div>
+    </section>
+    <section class="auth-card glass">
+      <div class="topline"><span class="brand-mark small">HCM<span>+</span></span><button id="themeToggle" class="icon-btn" aria-label="Toggle theme">☼</button></div>
+      <div id="setupPanel" hidden>
+        <p class="eyebrow">FIRST-RUN SETUP</p><h2>Create your workspace</h2>
+        <p class="muted">Set up your company and the first administrator.</p>
+        <form id="setupForm" novalidate>
+          <label>Company name<input name="company" required autocomplete="organization"></label>
+          <label>Admin name<input name="name" required autocomplete="name"></label>
+          <label>Admin email<input name="email" type="email" required autocomplete="email"></label>
+          <label>Admin password<input name="password" type="password" minlength="8" required autocomplete="new-password"><small>Use at least 8 characters.</small></label>
+          <p class="form-error" id="setupError" role="alert"></p>
+          <button class="btn primary full" type="submit">Create workspace</button>
+        </form>
+        <button id="resetStorage" class="text-btn" type="button">Reset local app data</button>
+      </div>
+      <div id="loginPanel" hidden>
+        <p class="eyebrow">WELCOME BACK</p><h2>Sign in to HCM Lite</h2>
+        <p class="muted" id="companyGreeting">Your people, all in one place.</p>
+        <form id="loginForm" novalidate>
+          <label>Email address<input name="email" type="email" required autocomplete="username"></label>
+          <label>Password<input name="password" type="password" required autocomplete="current-password"></label>
+          <p class="form-error" id="loginError" role="alert"></p>
+          <button class="btn primary full" type="submit">Sign in</button>
+        </form>
+        <button id="repairSetup" class="text-btn" type="button">Can't sign in? Reset app and set up again</button>
+      </div>
+      <p class="fine-print">Demo app · data stays in this browser</p>
+    </section>
+  </main>
+  <script src="js/storage.js"></script><script src="js/auth.js"></script>
   <script>
-    const user = currentUser();
-    if (user) location.href = "pages/" + (user.role === "admin" ? "admin.html" : "employee.html");
-
-    const setupForm = document.getElementById("setupForm"), loginForm = document.getElementById("loginForm");
-    const val = id => document.getElementById(id).value.trim();
-
-    if (getCompany()) {
-      loginForm.hidden = false;
-    } else {
-      setupForm.hidden = false;
-      document.getElementById("subtitle").textContent = "First time here? Set up your company and Admin account.";
+    HCM.applyTheme();
+    const setupPanel = document.querySelector('#setupPanel'), loginPanel = document.querySelector('#loginPanel');
+    function showCorrectPanel() {
+      const company = HCM.get('hcm_company', null), users = HCM.get('hcm_users', []);
+      const needsSetup = !company || !company.name || !Array.isArray(users) || !users.some(u => u.role === 'admin');
+      setupPanel.hidden = !needsSetup; loginPanel.hidden = needsSetup;
+      if (!needsSetup) document.querySelector('#companyGreeting').textContent = `Sign in to ${company.name}.`;
     }
-
-    setupForm.addEventListener("submit", e => {
-      e.preventDefault();
-      let ok = true;
-      ok = setErr("companyName", val("companyName") ? "" : "Company name is required") && ok;
-      ok = setErr("adminName", val("adminName") ? "" : "Your name is required") && ok;
-      ok = setErr("adminEmail", isEmail(val("adminEmail")) ? "" : "Enter a valid email") && ok;
-      ok = setErr("adminPassword", val("adminPassword").length >= 6 ? "" : "At least 6 characters") && ok;
-      ok = setErr("startTime", val("startTime") ? "" : "Required") && ok;
-      ok = setErr("graceMinutes", val("graceMinutes") !== "" && +val("graceMinutes") >= 0 ? "" : "Enter 0 or more") && ok;
-      ok = setErr("leaveQuota", +val("leaveQuota") > 0 ? "" : "Enter a number above 0") && ok;
-      if (!ok) return;
-      save(KEYS.company, { name: val("companyName"), start: val("startTime"), grace: +val("graceMinutes"), quota: +val("leaveQuota"), workDays: [1, 2, 3, 4, 5] });
-      const adminUser = { id: Date.now(), name: val("adminName"), email: val("adminEmail").toLowerCase(), password: val("adminPassword"), role: "admin", department: "Management", salary: 0 };
-      save(KEYS.users, [adminUser]);
-      save(KEYS.session, { id: adminUser.id });
-      location.href = "pages/admin.html";
+    showCorrectPanel();
+    document.querySelector('#themeToggle').addEventListener('click', HCM.toggleTheme);
+    document.querySelector('#resetStorage').addEventListener('click', () => {
+      if (confirm('Clear all HCM Lite data in this browser? This cannot be undone.')) { HCM.clearAppData(); showCorrectPanel(); }
     });
-
-    loginForm.addEventListener("submit", e => {
-      e.preventDefault();
-      const found = getUsers().find(u => u.email === val("email").toLowerCase() && u.password === document.getElementById("password").value);
-      if (!setErr("password", found ? "" : "Wrong email or password")) return;
-      save(KEYS.session, { id: found.id });
-      location.href = "pages/" + (found.role === "admin" ? "admin.html" : "employee.html");
+    document.querySelector('#repairSetup').addEventListener('click', () => {
+      if (confirm('This removes the company, users, attendance and leave records stored by HCM Lite in this browser. Continue?')) { HCM.clearAppData(); showCorrectPanel(); }
+    });
+    document.querySelector('#setupForm').addEventListener('submit', e => {
+      e.preventDefault(); const f = new FormData(e.currentTarget);
+      const company = String(f.get('company') || '').trim(), name = String(f.get('name') || '').trim(), email = String(f.get('email') || '').trim().toLowerCase(), password = String(f.get('password') || '');
+      const err = document.querySelector('#setupError'); err.textContent = '';
+      if (!company || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8) { err.textContent = 'Enter a company, admin name, valid email, and password of at least 8 characters.'; return; }
+      HCM.set('hcm_company', { name: company, startTime: '09:00', graceMinutes: 15, leaveQuota: 20, workingDays: [1,2,3,4,5] });
+      HCM.set('hcm_users', [{ id: HCM.id(), name, email, password, role: 'admin', department: 'Administration', salary: 0, active: true }]);
+      HCM.set('hcm_attendance', []); HCM.set('hcm_leaves', []); HCM.set('hcm_announcements', []);
+      HCM.login(HCM.get('hcm_users', [])[0]); location.href = 'pages/admin.html';
+    });
+    document.querySelector('#loginForm').addEventListener('submit', e => {
+      e.preventDefault(); const f = new FormData(e.currentTarget), email = String(f.get('email') || '').trim().toLowerCase(), password = String(f.get('password') || '');
+      const users = HCM.get('hcm_users', []), user = users.find(u => u.email.toLowerCase() === email && u.password === password && u.active !== false);
+      const err = document.querySelector('#loginError'); err.textContent = '';
+      if (!user) { err.textContent = 'Email or password is incorrect, or this account is inactive.'; return; }
+      HCM.login(user); location.href = user.role === 'admin' ? 'pages/admin.html' : 'pages/employee.html';
     });
   </script>
-</body>
-</html>
+</body></html>

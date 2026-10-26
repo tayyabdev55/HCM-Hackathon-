@@ -1,45 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HCM Lite - Employee</title>
-  <link rel="stylesheet" href="../css/dashboard.css">
-</head>
-<body>
-  <aside class="sidebar" id="sidebar"></aside>
-  <main class="main-content">
-    <header class="topbar">
-      <div><h1>My dashboard</h1><p>Check in, track your month and read announcements.</p></div>
-      <div class="admin-profile">
-        <div class="avatar" id="avatar">HR</div>
-        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
-      </div>
-    </header>
-    <section class="stats-grid">
-      <div class="stat-card"><span>📅</span><p>Today</p><h2 class="sm" id="todayStatus">-</h2></div>
-      <div class="stat-card"><span>🕘</span><p>Checked in at</p><h2 id="inTime">--:--</h2></div>
-      <div class="stat-card"><span>⏱️</span><p>Hours today</p><h2 id="hoursToday">0</h2></div>
-      <div class="stat-card"><span>🌴</span><p>Leave days left</p><h2 id="balance">0</h2></div>
-    </section>
-    <section class="content-card"><h2>Attendance</h2><p>One check-in per day. Check out when you finish.</p>
-      <div class="toolbar"><button class="primary-btn" id="checkInBtn" type="button">Check in</button><button class="primary-btn btn-alt" id="checkOutBtn" type="button">Check out</button></div>
-      <div class="chips"><span class="chip">This month</span><span class="chip">On time <b id="m-present">0</b></span><span class="chip">Late <b id="m-late">0</b></span><span class="chip">Half day <b id="m-half">0</b></span><span class="chip">Absent <b id="m-absent">0</b></span></div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Hours</th><th>Status</th></tr></thead><tbody id="attBody"></tbody></table></div>
-    </section>
-    <div class="grid-2">
-      <section class="content-card"><h2>Announcements</h2><p>News from your Admin.</p><div id="noticeList" class="notice-list"></div></section>
-    <section class="content-card"><h2>Smart helper</h2><p>Ask a question and get an answer from your real data.</p>
-      <div class="chat"><div class="chat-log" id="chatLog"></div>
-        <form class="chat-form" id="chatForm"><input id="chatInput" type="text" placeholder="Type a question..." autocomplete="off"><button class="primary-btn" type="submit">Ask</button></form></div>
-    </section>
-    </div>
-    <footer>HCM Lite © 2026</footer>
-  </main>
-  <script src="../js/storage.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/helper.js"></script>
-  <script src="../js/announcements.js"></script>
-  <script src="../js/attendance.js"></script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My dashboard · HCM Lite</title><link rel="stylesheet" href="../css/style.css"></head><body><div id="app"></div><script src="../js/storage.js"></script><script src="../js/auth.js"></script><script src="../js/attendance.js"></script><script src="../js/leave.js"></script><script src="../js/helper.js"></script><script>
+const user=HCM.guard('employee');if(user){HCM.wireTheme();const nav=[['employee.html','My dashboard'],['attendance.html','Attendance'],['payslip.html','My payslip']];document.querySelector('#app').innerHTML=`<div class="app-layout"><aside class="sidebar"><div class="brand-mark">HCM<span>+</span></div><nav class="nav-links">${nav.map(n=>`<a class="${n[0]==='employee.html'?'active':''}" href="${n[0]}">${n[1]}</a>`).join('')}</nav><div class="sidebar-bottom"><div class="user-chip"><strong>${HCM.esc(user.name)}</strong><span class="muted">${HCM.esc(user.department||'Employee')}</span></div><button class="btn secondary" data-theme-toggle>☼ Toggle theme</button><button class="btn secondary" id="logout">↗ Sign out</button></div></aside><header class="mobile-top"><span class="brand-mark">HCM<span>+</span></span><nav class="nav-links">${nav.map(n=>`<a href="${n[0]}">${n[1]}</a>`).join('')}</nav></header><main class="main-area"><header class="page-header"><div><p class="eyebrow">EMPLOYEE SELF-SERVICE · ${HCM.esc(HCM.today())}</p><h2>Hello, ${HCM.esc(user.name.split(' ')[0])} 👋</h2><p>Manage your attendance, leave and monthly payslip.</p></div></header><div class="grid stats-grid"><article class="panel stat"><div class="stat-label">Today’s status</div><div class="stat-value" id="todayStatus">—</div><div class="stat-note" id="todayTime">No check-in yet</div></article><article class="panel stat"><div class="stat-label">Leave balance</div><div class="stat-value" id="leaveBalance">—</div><div class="stat-note">Working days remaining</div></article><article class="panel stat"><div class="stat-label">Hours this week</div><div class="stat-value" id="weekHours">0</div><div class="stat-note">Recorded after check-out</div></article><article class="panel stat"><div class="stat-label">Pending requests</div><div class="stat-value" id="pendingCount">0</div><div class="stat-note">Waiting for HR decision</div></article></div><div class="grid two-col"><section class="panel"><div class="panel-head"><div><h3>Today’s attendance</h3><p>One check-in and one check-out per working day</p></div></div><div class="notice" id="attendanceNotice">Check in when you arrive at the office.</div><div class="actions" style="margin-top:15px"><button class="btn primary" id="checkIn">Check in</button><button class="btn secondary" id="checkOut">Check out</button></div><p class="form-error" id="attError" style="margin-top:10px"></p><h3 style="margin-top:25px">Recent attendance</h3><div class="table-wrap"><table><thead><tr><th>Date</th><th>In</th><th>Out</th><th>Hours</th><th>Status</th></tr></thead><tbody id="attendanceRows"></tbody></table></div></section><section class="panel"><div class="panel-head"><div><h3>Request leave</h3><p>Weekends are excluded from working-day count.</p></div></div><form id="leaveForm" class="form-grid" novalidate><label class="field">Leave type<select name="type"><option>Casual</option><option>Sick</option><option>Annual</option><option>Unpaid</option></select></label><label class="field">From<input type="date" name="from" required></label><label class="field">To<input type="date" name="to" required></label><label class="field wide">Reason<textarea name="reason" rows="3" required></textarea></label><p class="form-error wide" id="leaveError"></p><div class="wide"><button class="btn primary" type="submit">Submit request</button></div></form><h3 style="margin-top:25px">My leave requests</h3><div id="leaveRows"></div></section></div></main></div>`;
+const record=()=>HCMAttendance.getTodayRecord(user.id);function render(){const a=record(),ars=HCMAttendance.employeeRecords(user.id),ls=HCM.leaves().filter(l=>l.employeeId===user.id).sort((a,b)=>b.from.localeCompare(a.from));document.querySelector('#todayStatus').textContent=a?a.status:'Not checked in';document.querySelector('#todayTime').textContent=a?`In ${a.checkIn||'—'} · Out ${a.checkOut||'—'}`:'No check-in yet';document.querySelector('#attendanceNotice').textContent=a?`Today: ${a.status}. Check-in ${a.checkIn}; check-out ${a.checkOut||'not yet recorded'}.`:'Check in when you arrive. Late status follows the company start time and grace period.';document.querySelector('#checkIn').disabled=!!a;document.querySelector('#checkOut').disabled=!a||!!a.checkOut;document.querySelector('#leaveBalance').textContent=HCMLeave.remaining(user.id);document.querySelector('#pendingCount').textContent=ls.filter(l=>l.status==='Pending').length;const since=new Date();since.setDate(since.getDate()-6);const start=`${since.getFullYear()}-${String(since.getMonth()+1).padStart(2,'0')}-${String(since.getDate()).padStart(2,'0')}`;document.querySelector('#weekHours').textContent=ars.filter(r=>r.date>=start&&r.date<=HCM.today()).reduce((s,r)=>s+Number(r.hours||0),0).toFixed(1);document.querySelector('#attendanceRows').innerHTML=ars.slice(0,10).map(r=>`<tr><td>${HCM.fmtDate(r.date)}</td><td>${r.checkIn||'—'}</td><td>${r.checkOut||'—'}</td><td>${Number(r.hours||0).toFixed(2)}</td><td><span class="badge ${HCM.statusClass(r.status)}">${HCM.esc(r.status)}</span></td></tr>`).join('')||'<tr><td colspan="5" class="empty">No records yet.</td></tr>';document.querySelector('#leaveRows').innerHTML=ls.length?ls.map(l=>`<div class="announcement"><div class="actions" style="justify-content:space-between"><strong>${HCM.esc(l.type)} · ${l.days} day(s)</strong><span class="badge ${HCM.statusClass(l.status)}">${HCM.esc(l.status)}</span></div><div class="muted">${HCM.fmtDate(l.from)} – ${HCM.fmtDate(l.to)}</div><div>${HCM.esc(l.reason||'')}</div>${l.comment?`<small>HR: ${HCM.esc(l.comment)}</small>`:''}</div>`).join(''):'<div class="empty">No leave requests yet.</div>';}
+document.querySelector('#checkIn').onclick=()=>{try{HCMAttendance.checkIn(user.id);document.querySelector('#attError').textContent='';render();}catch(e){document.querySelector('#attError').textContent=e.message;}};document.querySelector('#checkOut').onclick=()=>{try{HCMAttendance.checkOut(user.id);document.querySelector('#attError').textContent='';render();}catch(e){document.querySelector('#attError').textContent=e.message;}};document.querySelector('#leaveForm').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget)),err=document.querySelector('#leaveError');try{const l=HCMLeave.apply(user.id,d);err.textContent=`Request submitted for ${l.days} working day(s).`;e.currentTarget.reset();render();}catch(ex){err.textContent=ex.message;}};document.querySelector('#logout').onclick=HCM.logout;render();HCMHelper.mount(user);}
+</script></body></html>

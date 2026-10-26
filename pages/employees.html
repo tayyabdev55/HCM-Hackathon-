@@ -1,39 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HCM Lite - Employees</title>
-  <link rel="stylesheet" href="../css/dashboard.css">
-</head>
-<body>
-  <aside class="sidebar" id="sidebar"></aside>
-  <main class="main-content">
-    <header class="topbar">
-      <div><h1>Employees</h1><p>Add employees, which also creates their login.</p></div>
-      <div class="admin-profile">
-        <div class="avatar" id="avatar">HR</div>
-        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
-      </div>
-    </header>
-    <section class="content-card"><h2>Add new employee</h2><p>The email and password below become the employee's login.</p>
-      <form id="addEmployeeForm" class="form-grid" novalidate>
-        <div class="field"><label for="empName">Full name</label><input id="empName" type="text" placeholder="Full name"></div>
-        <div class="field"><label for="empEmail">Email</label><input id="empEmail" type="email" placeholder="name@company.com"></div>
-        <div class="field"><label for="empPassword">Temporary password</label><input id="empPassword" type="password" placeholder="Minimum 6 characters"></div>
-        <div class="field"><label for="empDepartment">Department</label><input id="empDepartment" type="text" placeholder="e.g. IT"></div>
-        <div class="field"><label for="empSalary">Monthly salary (Rs)</label><input id="empSalary" type="number" min="1" placeholder="e.g. 60000"></div>
-        <div class="field full"><button class="primary-btn" type="submit">Create employee</button><p id="formMessage" role="status"></p></div>
-      </form>
-    </section>
-    <section class="content-card"><h2>All employees</h2><p>Total employees: <strong id="employeeCount">0</strong></p>
-      <div class="toolbar"><input id="searchInput" type="search" placeholder="Search by name or email"><select id="deptFilter"></select></div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Salary</th><th>Actions</th></tr></thead><tbody id="employeeBody"></tbody></table></div>
-    </section>
-    <footer>HCM Lite © 2026</footer>
-  </main>
-  <script src="../js/storage.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/employees.js"></script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Employees · HCM Lite</title><link rel="stylesheet" href="../css/style.css"></head><body><div id="app"></div><script src="../js/storage.js"></script><script src="../js/auth.js"></script><script src="../js/employees.js"></script><script>
+const admin=HCM.guard('admin');if(admin){HCM.wireTheme();const nav=[['admin.html','Dashboard'],['employees.html','Employees'],['attendance.html','Attendance'],['leaves.html','Leave requests'],['settings.html','Settings'],['payslip.html','Payslips']];document.querySelector('#app').innerHTML=`<div class="app-layout"><aside class="sidebar"><div class="brand-mark">HCM<span>+</span></div><nav class="nav-links">${nav.map(n=>`<a class="${n[0]==='employees.html'?'active':''}" href="${n[0]}">${n[1]}</a>`).join('')}</nav><div class="sidebar-bottom"><div class="user-chip"><strong>${HCM.esc(admin.name)}</strong><span class="muted">Administrator</span></div><button class="btn secondary" data-theme-toggle>☼ Toggle theme</button><button class="btn secondary" id="logout">↗ Sign out</button></div></aside><header class="mobile-top"><span class="brand-mark">HCM<span>+</span></span><nav class="nav-links">${nav.map(n=>`<a href="${n[0]}">${n[1]}</a>`).join('')}</nav></header><main class="main-area"><header class="page-header"><div><p class="eyebrow">PEOPLE DIRECTORY</p><h2>Employees</h2><p>Add, edit, filter, and manage employee accounts.</p></div></header><div class="grid two-col"><section class="panel"><div class="panel-head"><div><h3 id="formTitle">Add employee</h3><p>New employees can sign in with these credentials.</p></div></div><form id="employeeForm" class="form-grid" novalidate><input type="hidden" name="id"><label class="field">Full name<input name="name" required></label><label class="field">Email<input name="email" type="email" required></label><label class="field">Department<input name="department" required></label><label class="field">Monthly salary<input name="salary" type="number" min="1" step="0.01" required></label><label class="field wide">Password <small id="passwordHelp">At least 8 characters</small><input name="password" type="password" minlength="8" placeholder="Minimum 8 characters"></label><label class="field wide" id="activeWrap" hidden><span>Account status</span><select name="active"><option value="true">Active</option><option value="false">Inactive</option></select></label><p class="form-error wide" id="error"></p><div class="actions wide"><button class="btn primary" type="submit">Save employee</button><button class="btn secondary" type="button" id="cancelEdit" hidden>Cancel edit</button></div></form></section><section class="panel"><div class="panel-head"><div><h3>Employee list</h3><p id="count"></p></div></div><div class="toolbar"><input id="search" placeholder="Search name or email…" aria-label="Search employees"><select id="departmentFilter" aria-label="Filter department"><option value="">All departments</option></select></div><div class="table-wrap"><table><thead><tr><th>Name</th><th>Department</th><th>Salary</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div></section></div></main></div>`;
+const form=document.querySelector('#employeeForm'),err=document.querySelector('#error');function render(){const all=HCM.users().filter(u=>u.role==='employee'),q=document.querySelector('#search').value.toLowerCase(),dep=document.querySelector('#departmentFilter').value;const deps=[...new Set(all.map(u=>u.department).filter(Boolean))];document.querySelector('#departmentFilter').innerHTML='<option value="">All departments</option>'+deps.map(d=>`<option ${d===dep?'selected':''}>${HCM.esc(d)}</option>`).join('');const list=all.filter(u=>(!q||u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q))&&(!dep||u.department===dep));document.querySelector('#count').textContent=`${list.length} of ${all.length} employee(s)`;document.querySelector('#rows').innerHTML=list.length?list.map(u=>`<tr><td><strong>${HCM.esc(u.name)}</strong><div class="muted">${HCM.esc(u.email)}</div></td><td>${HCM.esc(u.department||'—')}</td><td>${Number(u.salary).toLocaleString(undefined,{maximumFractionDigits:2})}</td><td><span class="badge ${u.active===false?'inactive':'active'}">${u.active===false?'Inactive':'Active'}</span></td><td><div class="actions"><button class="btn secondary small" data-edit="${u.id}">Edit</button><button class="btn danger small" data-delete="${u.id}">Delete</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No employees match your filters.</td></tr>';}
+function clearForm(){form.reset();form.elements.id.value='';form.elements.password.required=true;document.querySelector('#formTitle').textContent='Add employee';document.querySelector('#passwordHelp').textContent='At least 8 characters';document.querySelector('#activeWrap').hidden=true;document.querySelector('#cancelEdit').hidden=true;err.textContent='';}
+form.onsubmit=e=>{e.preventDefault();err.textContent='';const d=Object.fromEntries(new FormData(form));try{if(d.id){HCMEmployees.updateEmployee(d.id,{...d,active:d.active==='true'});}else{HCMEmployees.addEmployee(d);}clearForm();render();}catch(ex){err.textContent=ex.message;}};
+document.querySelector('#rows').onclick=e=>{const edit=e.target.closest('[data-edit]'),del=e.target.closest('[data-delete]');if(edit){const u=HCM.users().find(x=>x.id===edit.dataset.edit);if(!u)return;form.elements.id.value=u.id;form.elements.name.value=u.name;form.elements.email.value=u.email;form.elements.department.value=u.department||'';form.elements.salary.value=u.salary;form.elements.password.value='';form.elements.password.required=false;form.elements.active.value=String(u.active!==false);document.querySelector('#formTitle').textContent='Edit employee';document.querySelector('#passwordHelp').textContent='Leave blank to keep current password';document.querySelector('#activeWrap').hidden=false;document.querySelector('#cancelEdit').hidden=false;err.textContent='';}if(del){const u=HCM.users().find(x=>x.id===del.dataset.delete);if(u&&confirm(`Delete ${u.name} and their attendance/leave history?`)){HCMEmployees.deleteEmployee(u.id);clearForm();render();}}};
+document.querySelector('#cancelEdit').onclick=clearForm;document.querySelector('#search').oninput=render;document.querySelector('#departmentFilter').onchange=render;document.querySelector('#logout').onclick=HCM.logout;render();}
+</script></body></html>

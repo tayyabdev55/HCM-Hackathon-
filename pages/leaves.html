@@ -1,28 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HCM Lite - Leave requests</title>
-  <link rel="stylesheet" href="../css/dashboard.css">
-</head>
-<body>
-  <aside class="sidebar" id="sidebar"></aside>
-  <main class="main-content">
-    <header class="topbar">
-      <div><h1>Leave requests</h1><p>Approve or reject with a comment.</p></div>
-      <div class="admin-profile">
-        <div class="avatar" id="avatar">HR</div>
-        <div><strong id="adminName"></strong><small id="roleLabel"></small></div>
-      </div>
-    </header>
-    <section class="content-card" id="leaveTable"><h2>All requests</h2><p>Pending requests are shown first. Approving updates the employee's balance.</p>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead><tbody id="leaveBody"></tbody></table></div>
-    </section>
-    <footer>HCM Lite © 2026</footer>
-  </main>
-  <script src="../js/storage.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/leave.js"></script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Leave requests · HCM Lite</title><link rel="stylesheet" href="../css/style.css"></head><body><div id="app"></div><script src="../js/storage.js"></script><script src="../js/auth.js"></script><script src="../js/leave.js"></script><script>
+const admin=HCM.guard('admin');if(admin){HCM.wireTheme();const nav=[['admin.html','Dashboard'],['employees.html','Employees'],['attendance.html','Attendance'],['leaves.html','Leave requests'],['settings.html','Settings'],['payslip.html','Payslips']];document.querySelector('#app').innerHTML=`<div class="app-layout"><aside class="sidebar"><div class="brand-mark">HCM<span>+</span></div><nav class="nav-links">${nav.map(n=>`<a class="${n[0]==='leaves.html'?'active':''}" href="${n[0]}">${n[1]}</a>`).join('')}</nav><div class="sidebar-bottom"><div class="user-chip"><strong>${HCM.esc(admin.name)}</strong><span class="muted">Administrator</span></div><button class="btn secondary" data-theme-toggle>☼ Toggle theme</button><button class="btn secondary" id="logout">↗ Sign out</button></div></aside><header class="mobile-top"><span class="brand-mark">HCM<span>+</span></span><nav class="nav-links">${nav.map(n=>`<a href="${n[0]}">${n[1]}</a>`).join('')}</nav></header><main class="main-area"><header class="page-header"><div><p class="eyebrow">TIME OFF</p><h2>Leave requests</h2><p>Review requests, add a comment, and update leave balances.</p></div><div class="header-actions"><select id="filter" aria-label="Filter leave status"><option value="">All statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option></select></div></header><section class="panel"><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Type / reason</th><th>Dates</th><th>Days</th><th>Status</th><th>Admin comment</th><th>Decision</th></tr></thead><tbody id="rows"></tbody></table></div></section></main></div>`;
+function render(){const users=HCM.users(),filter=document.querySelector('#filter').value;const ls=HCM.leaves().filter(l=>!filter||l.status===filter).sort((a,b)=>String(b.createdAt||'').localeCompare(a.createdAt||''));document.querySelector('#rows').innerHTML=ls.length?ls.map(l=>{const u=users.find(x=>x.id===l.employeeId)||{};return `<tr><td><strong>${HCM.esc(u.name||'Deleted employee')}</strong><div class="muted">${HCM.esc(u.department||'')}</div></td><td>${HCM.esc(l.type)}<div class="muted">${HCM.esc(l.reason||'No reason')}</div></td><td>${HCM.fmtDate(l.from)} – ${HCM.fmtDate(l.to)}</td><td>${l.days}</td><td><span class="badge ${HCM.statusClass(l.status)}">${HCM.esc(l.status)}</span></td><td><input data-comment="${l.id}" value="${HCM.esc(l.comment||'')}" placeholder="Optional comment" ${l.status!=='Pending'?'disabled':''} aria-label="Comment for ${HCM.esc(u.name||'employee')}"></td><td>${l.status==='Pending'?`<div class="actions"><button class="btn success small" data-approve="${l.id}">Approve</button><button class="btn danger small" data-reject="${l.id}">Reject</button></div>`:'—'}</td></tr>`}).join(''):'<tr><td colspan="7" class="empty">No leave requests yet.</td></tr>';}
+document.querySelector('#rows').onclick=e=>{const a=e.target.closest('[data-approve]'),r=e.target.closest('[data-reject]');if(!a&&!r)return;const id=(a||r).dataset.approve||(a||r).dataset.reject,comment=document.querySelector(`[data-comment="${id}"]`)?.value||'';try{HCMLeave.decide(id,a?'Approved':'Rejected',comment);render();}catch(ex){alert(ex.message);}};document.querySelector('#filter').onchange=render;document.querySelector('#logout').onclick=HCM.logout;render();}
+</script></body></html>
