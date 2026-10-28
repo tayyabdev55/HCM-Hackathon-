@@ -17,7 +17,7 @@
     document.documentElement.classList.toggle('theme-light', theme === 'light');
   }
   function toggleTheme() {
-    const next = H.get('hcm_theme','dark') === 'dark' ? 'light' : 'dark';
+    const next = H.get('hcm_theme', 'dark') === 'dark' ? 'light' : 'dark';
     H.set('hcm_theme', next); applyTheme();
   }
   function wireTheme() { applyTheme(); document.querySelectorAll('[data-theme-toggle]').forEach(b => b.addEventListener('click', toggleTheme)); }
